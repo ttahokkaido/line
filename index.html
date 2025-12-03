@@ -125,13 +125,8 @@
                 
                 <!-- Auth Actions (Visible ONLY if Read-Only) -->
                 <div v-if="isReadOnly" class="ml-2">
-                    <!-- Case 1: LIFF is ready but not logged in (Netlify/Web) -> Show Login Button -->
-                    <button v-if="liffReady && !liffError" @click="liffLogin" class="text-xs bg-primary text-white px-3 py-1.5 rounded-full shadow hover:bg-primary-dark transition flex items-center">
-                        <i class="fa-brands fa-line mr-1"></i> 登入
-                    </button>
-                    
-                    <!-- Case 2: LIFF Failed (Google Sites/Local) -> Show Manual Lock -->
-                    <button v-else-if="liffError" @click="manualUnlock" class="text-stone-300 hover:text-stone-500 p-1">
+                    <!-- Manual Unlock Button -->
+                    <button @click="manualUnlock" class="text-stone-300 hover:text-stone-500 p-1">
                         <i class="fa-solid fa-lock text-sm"></i>
                     </button>
                 </div>
@@ -193,6 +188,7 @@
                                 <h3 class="font-bold text-stone-700 text-lg mr-2 font-serif">
                                     {{ currentDayData.city || '自動偵測地點...' }}
                                 </h3>
+                                <!-- City Edit Button (Hidden if Read-Only) -->
                                 <button v-if="!isReadOnly" @click="setCityForDay" class="text-stone-300 hover:text-sky-500 transition text-xs">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
@@ -219,6 +215,7 @@
                 </div>
                 <p class="font-serif text-lg text-stone-500">尚未安排行程</p>
                 <p class="text-xs mt-2 font-sans">{{ getDateDisplay(activeDayIndex, true) }}</p>
+                <!-- Add Button (Hidden if Read-Only) -->
                 <button v-if="!isReadOnly" @click="openEventModal()" class="mt-8 px-8 py-3 bg-primary text-white rounded-full shadow-lg hover:bg-primary-dark transition font-medium tracking-wide active:scale-95">
                     新增行程
                 </button>
@@ -243,6 +240,8 @@
                                     </span>
                                 </h3>
                             </div>
+                            
+                            <!-- Edit/Delete Buttons (Hidden if Read-Only) -->
                             <div v-if="!isReadOnly" class="flex flex-col space-y-2 ml-2">
                                 <button @click="openEventModal(event)" :class="event.type === 'flight' ? 'bg-white text-indigo-400 hover:text-indigo-600' : 'bg-stone-50 text-stone-300 hover:text-primary'" class="w-8 h-8 rounded-full flex items-center justify-center transition shadow-sm">
                                     <i class="fa-solid fa-pen text-xs"></i>
@@ -254,6 +253,7 @@
                             <a v-if="event.location" :href="getMapUrl(event.location)" target="_blank" :class="event.type === 'flight' ? 'bg-white text-indigo-600 hover:bg-indigo-50 border-indigo-100' : 'bg-stone-50 text-stone-600 hover:bg-stone-100'" class="flex-1 text-sm py-2.5 rounded-xl text-center transition font-bold active:bg-stone-200 shadow-sm">
                                 <i class="fa-solid fa-location-arrow mr-1.5" :class="event.type === 'flight' ? 'text-indigo-500' : 'text-primary'"></i> 導航
                             </a>
+                            <!-- Delete Button (Hidden if Read-Only) -->
                             <button v-if="!isReadOnly" @click="deleteEvent(event.id)" :class="event.type === 'flight' ? 'bg-white text-indigo-300 hover:text-red-400' : 'bg-stone-50 text-stone-400 hover:text-red-400'" class="px-3 rounded-xl transition active:scale-90 shadow-sm">
                                 <i class="fa-solid fa-trash text-xs"></i>
                             </button>
@@ -266,6 +266,7 @@
                     </div>
                 </div>
 
+                <!-- Add Button at bottom of list (Hidden if Read-Only) -->
                 <div v-if="!isReadOnly" class="flex justify-center pt-4">
                      <button @click="openEventModal()" class="group flex items-center space-x-2 text-primary text-sm font-medium bg-white px-5 py-2.5 rounded-full shadow-sm border border-primary/20 hover:bg-primary-light transition active:scale-95">
                         <i class="fa-solid fa-plus group-hover:rotate-90 transition-transform"></i>
@@ -275,7 +276,7 @@
             </div>
         </div>
 
-        <!-- View: Converter -->
+        <!-- View: Converter (Always Visible, Local Tool) -->
         <div v-if="currentView === 'converter'" class="p-6 h-full flex flex-col items-center">
             <div class="w-full bg-white rounded-2xl p-4 shadow-sm border border-stone-100 mb-6 flex justify-between items-center animate-[slideUp_0.3s_ease-out]">
                 <label class="text-xs font-bold text-stone-400 uppercase tracking-wider">當前匯率 (JPY/TWD)</label>
@@ -416,8 +417,8 @@
 
             return {
                 isReadOnly: true,
-                liffReady: false, // New: Track if LIFF loaded successfully
-                liffError: false, // New: Track if LIFF failed (e.g. iframe)
+                liffReady: false,
+                liffError: false,
                 currentView: 'itinerary',
                 tripTitle: '日本旅行',
                 startDate: todayStr, 
@@ -516,11 +517,6 @@
                     }
                 }
             },
-            liffLogin() {
-                if (!this.liffReady) return;
-                // Trigger standard LINE Login redirect
-                liff.login(); 
-            },
             manualUnlock() {
                 const pass = prompt('請輸入解鎖密碼：', '');
                 if (pass === '1234') {
@@ -598,7 +594,7 @@
                 }
             },
             getWeatherIcon(code) {
-                if (code === 0) return ☀️';
+                if (code === 0) return '☀️';
                 if (code <= 3) return '☁️';
                 if (code <= 48) return '🌫️';
                 if (code <= 67) return '🌧️';
